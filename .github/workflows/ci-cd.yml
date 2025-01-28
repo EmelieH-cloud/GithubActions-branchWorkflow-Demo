@@ -1,0 +1,62 @@
+﻿name: CI/CD Workflow
+
+on:
+  push:
+    branches:
+      - dev    # Kör workflow på push till dev
+      - qa     # Kör workflow på push till qa
+      - main   # Kör workflow på push till main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Kör jobbet på en Ubuntu-maskin
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2  # Klona koden från repository
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3  # Installera .NET SDK
+      with:
+        dotnet-version: '7.0'  # Anpassa till din .NET-version
+
+    - name: Restore dependencies
+      run: dotnet restore  # Installera NuGet-beroenden
+
+    - name: Build solution
+      run: dotnet build --configuration Release  # Bygg projektet
+
+  test:
+    runs-on: ubuntu-latest  # Kör jobbet på en Ubuntu-maskin
+    needs: build            # Testet körs efter att bygget är klart
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2  # Klona koden från repository
+
+    - name: Run unit tests
+      run: dotnet test  # Kör unit-tester
+
+  deploy_to_qa:
+    runs-on: ubuntu-latest  # Kör jobbet på en Ubuntu-maskin
+    needs: test             # Kör deploy när tester är klara
+    if: github.ref == 'refs/heads/qa'  # Körs bara om ändringar är på qa-branch
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2  # Klona koden från repository
+
+    - name: Deploy to QA environment
+      run: echo "Deploying to QA environment..."  # Simulera deployment till QA-miljö
+
+  deploy_to_prod:
+    runs-on: ubuntu-latest  # Kör jobbet på en Ubuntu-maskin
+    needs: test             # Kör deploy när tester är klara
+    if: github.ref == 'refs/heads/main'  # Körs bara om ändringar är på main-branch
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2  # Klona koden från repository
+
+    - name: Deploy to Production environment
+      run: echo "Deploying to Production environment..."  # Simulera deployment till produktionsmiljö
